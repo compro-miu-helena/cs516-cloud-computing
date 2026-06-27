@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Friends API Frontend</title>
+
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f4f7fb;
+      }
+
+      .container {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .card {
+        width: 420px;
+        background: white;
+        padding: 32px;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      }
+
+      h1 {
+        color: #1f2937;
+      }
+
+      .message {
+        color: #2563eb;
+        font-weight: bold;
+      }
+
+      .error {
+        color: #dc2626;
+        font-weight: bold;
+      }
+
+      li {
+        margin-bottom: 8px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <script>
+      const API_URL =
+        "https://2ejd3epngqypno2bfl3h7j3m6e0ljyfu.lambda-url.us-east-2.on.aws/";
+
+      const e = React.createElement;
+
+      function App() {
+        const [friends, setFriends] = React.useState([]);
+        const [message, setMessage] = React.useState("");
+        const [loading, setLoading] = React.useState(true);
+        const [error, setError] = React.useState("");
+
+        React.useEffect(function () {
+          async function fetchFriends() {
+            try {
+              const response = await fetch(API_URL);
+
+              if (!response.ok) {
+                throw new Error("Request failed with status " + response.status);
+              }
+
+              const result = await response.json();
+
+              setMessage(result.message);
+              setFriends(result.data || []);
+            } catch (err) {
+              setError(err.message);
+            } finally {
+              setLoading(false);
+            }
+          }
+
+          fetchFriends();
+        }, []);
+
+        if (loading) {
+          return e(
+            "main",
+            { className: "container" },
+            e(
+              "section",
+              { className: "card" },
+              e("h1", null, "Friends API Frontend"),
+              e("p", null, "Loading friends...")
+            )
+          );
+        }
+
+        if (error) {
+          return e(
+            "main",
+            { className: "container" },
+            e(
+              "section",
+              { className: "card" },
+              e("h1", null, "Friends API Frontend"),
+              e("p", { className: "error" }, "Error: " + error)
+            )
+          );
+        }
+
+        return e(
+          "main",
+          { className: "container" },
+          e(
+            "section",
+            { className: "card" },
+            e("h1", null, "Friends API Frontend"),
+            e("p", { className: "message" }, message),
+            e("h2", null, "Friends List"),
+            e(
+              "ul",
+              null,
+              friends.map(function (friend) {
+                return e(
+                  "li",
+                  { key: friend.id },
+                  "#" + friend.id + " — " + friend.name
+                );
+              })
+            )
+          )
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(e(App));
+    </script>
+  </body>
+</html>
